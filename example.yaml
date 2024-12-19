@@ -1,0 +1,45 @@
+esphome:
+  name: elero-wired-test
+  platform: ESP32
+  board: wemos_d1_mini32
+
+substitutions:
+  plug_name: elero-wired-test
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+    
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${plug_name} Hotspot"
+    password: !secret Fallback_Hotspot
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  platform: esphome
+
+elero_wired:
+  - id: cover1
+    open_pin: GPIO21
+    close_pin: GPIO22
+
+cover:
+  - platform: elero_wired
+    elero_wired_id: cover1
+    name: "Test Cover"
+    open_duration: 10s
+    close_duration: 10s
+    tilt_open_duration: 5s
+    tilt_close_duration: 5s
+    extra_wait_time: 2s
+
+switch:
+  - platform: elero_wired
+    elero_wired_id: cover1
+    name: "Test Cover Funkmodus"
