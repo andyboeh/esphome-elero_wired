@@ -8,7 +8,7 @@ namespace elero_wired {
 static const char *const TAG = "elero_wired.switch";
 
 void EleroWiredSwitch::setup() {
-    bool initial_state = this->get_initial_state().value_or(false);
+    bool initial_state = this->get_initial_state_with_restore_mode().value_or(false);
     if (initial_state) {
         this->turn_on();
     } else {
