@@ -18,6 +18,10 @@ void EleroWiredCover::setup() {
   auto restore = this->restore_state_();
   if (restore.has_value()) {
     restore->apply(this);
+    // If the position is not completely closed,
+    // the tilt has to be force open
+    if(this->position > COVER_CLOSED)
+      this->tilt = COVER_OPEN;
   } else {
     if((this->open_duration_ > 0) && (this->close_duration_ > 0))
       this->position = 0.5f;
