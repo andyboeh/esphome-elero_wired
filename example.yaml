@@ -38,6 +38,7 @@ cover:
     tilt_open_duration: 5s
     tilt_close_duration: 5s
     extra_wait_time: 2s
+    endstop_wait_time: 120s
 
 switch:
   - platform: elero_wired

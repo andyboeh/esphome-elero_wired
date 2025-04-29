@@ -9,6 +9,7 @@ typedef enum {
   COVER_MOVING,
   COVER_MOVING_WAIT,
   COVER_STOPPED,
+  COVER_STOPPED_ENDSTOP,
   TILT_MOVING,
   TILT_MOVING_WAIT,
   TILT_STOPPED
@@ -31,6 +32,7 @@ class EleroWiredCover : public cover::Cover, public Component {
   void set_tilt_close_duration(uint32_t dur) { this->tilt_close_duration_ = dur; }
   void set_tilt_open_duration(uint32_t dur) { this->tilt_open_duration_ = dur; }
   void set_extra_wait_time(uint32_t dur) { this->extra_wait_time_ = dur; }
+  void set_endstop_wait_time(uint32_t dur) { this->endstop_wait_time_ = dur; }
   void set_elero_wired_parent(EleroWired *parent) { this->parent_ = parent; }
   void recompute_position();
   void start_movement(cover::CoverOperation op);
@@ -45,7 +47,8 @@ class EleroWiredCover : public cover::Cover, public Component {
   uint32_t close_duration_{0};
   uint32_t tilt_open_duration_{0};
   uint32_t tilt_close_duration_{0};
-  uint32_t extra_wait_time_ {0};
+  uint32_t extra_wait_time_{0};
+  uint32_t endstop_wait_time_{0};
   uint32_t last_publish_{0};
   uint32_t last_recompute_time_{0};
   uint32_t last_relay_time_{0};

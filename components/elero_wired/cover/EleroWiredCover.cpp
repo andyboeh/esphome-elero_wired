@@ -55,6 +55,13 @@ void EleroWiredCover::loop() {
       this->publish_state(false);
       this->last_publish_ = now;
     }
+  } else {
+    if((this->wired_states_ == COVER_STOPPED_ENDSTOP) && ((now - this->movement_time_) > this->endstop_wait_time_)) {
+      this->wired_states_ = COVER_STOPPED;
+      this->parent_->pin_open_clear();
+      this->parent_->pin_close_clear();
+      this->last_relay_time_ = now;
+    }
   }
 
   if((this->pending_operation_ != COVER_OPERATION_IDLE) && ((now - this->last_relay_time_) > ELERO_WIRED_RELAY_BLOCK_TIME)) {
@@ -85,10 +92,20 @@ cover::CoverTraits EleroWiredCover::get_traits() {
 }
 
 void EleroWiredCover::control(const cover::CoverCall &call) {
+  uint32_t now = millis();
+
   if(this->status_has_warning()) {
     ESP_LOGD(TAG, "Controls disabled due to wireless mode");
     return;
   }
+
+  if(this->wired_states_ == COVER_STOPPED_ENDSTOP) {
+    this->parent_->pin_open_clear();
+    this->parent_->pin_close_clear();
+    this->last_relay_time_ = now;
+    this->wired_states_ = COVER_STOPPED;
+  }
+
   if (call.get_stop()) {
     ESP_LOGD(TAG, "call.get_stop()");
     this->target_position_ = this->position;
@@ -246,7 +263,11 @@ void EleroWiredCover::recompute_position() {
       if(this->tilt >= this->target_tilt_) { // We reached the tilt
         this->movement_time_ = now;
         if(this->target_tilt_ == COVER_OPEN) {
-          this->wired_states_ = TILT_MOVING_WAIT;
+          if(this->position >= this->target_position_) { // We reached the target position as well
+            this->wired_states_ = COVER_STOPPED_ENDSTOP;
+          } else {
+            this->wired_states_ = TILT_MOVING_WAIT;
+          }
         } else {
           this->wired_states_ = TILT_STOPPED;
         }
@@ -275,7 +296,7 @@ void EleroWiredCover::recompute_position() {
       if(this->position >= this->target_position_) {
         this->movement_time_ = now;
         if(this->target_position_ == COVER_OPEN) {
-          this->wired_states_ = COVER_MOVING_WAIT;
+          this->wired_states_ = COVER_STOPPED_ENDSTOP;
         } else {
           this->wired_states_ = COVER_STOPPED;
         }
@@ -290,6 +311,10 @@ void EleroWiredCover::recompute_position() {
         this->movement_time_ = now;
       }
     break;
+    case COVER_STOPPED_ENDSTOP:
+      this->current_operation = COVER_OPERATION_IDLE;
+      this->publish_state();
+    break;
     case COVER_STOPPED:
       this->parent_->pin_open_clear();
       this->current_operation = COVER_OPERATION_IDLE;
@@ -302,7 +327,7 @@ void EleroWiredCover::recompute_position() {
       if(this->tilt <= this->target_tilt_) { // We reached the tilt
         this->movement_time_ = now;
         if(this->target_tilt_ == COVER_CLOSED) {
-          this->wired_states_ = TILT_MOVING_WAIT;
+          this->wired_states_ = COVER_STOPPED_ENDSTOP;
         } else {
           this->wired_states_ = TILT_STOPPED;
         }
@@ -326,7 +351,11 @@ void EleroWiredCover::recompute_position() {
       if(this->position <= this->target_position_) {
         this->movement_time_ = now;
         if(this->target_position_ == COVER_CLOSED) {
-          this->wired_states_ = COVER_MOVING_WAIT;
+          if(this->tilt <= this->target_tilt_) {
+            this->wired_states_ = COVER_STOPPED_ENDSTOP;
+          } else {
+            this->wired_states_ = COVER_MOVING_WAIT;
+          }
         } else {
           this->wired_states_ = COVER_STOPPED;
         }
@@ -340,6 +369,10 @@ void EleroWiredCover::recompute_position() {
         this->wired_states_ = COVER_STOPPED;
         this->movement_time_ = now;
       }
+    break;
+    case COVER_STOPPED_ENDSTOP:
+      this->current_operation = COVER_OPERATION_IDLE;
+      this->publish_state();
     break;
     case COVER_STOPPED:
       this->parent_->pin_close_clear();

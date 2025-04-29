@@ -19,6 +19,7 @@ EleroWiredCover = elero_wired_ns.class_("EleroWiredCover", cover.Cover, cg.Compo
 CONF_TILT_OPEN_DURATION = "tilt_open_duration"
 CONF_TILT_CLOSE_DURATION = "tilt_close_duration"
 CONF_EXTRA_WAIT_TIME = "extra_wait_time"
+CONF_ENDSTOP_WAIT_TIME = "endstop_wait_time"
 
 CONFIG_SCHEMA = cover.COVER_SCHEMA.extend(
     {
@@ -29,6 +30,7 @@ CONFIG_SCHEMA = cover.COVER_SCHEMA.extend(
         cv.Optional(CONF_TILT_OPEN_DURATION, default="0s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_TILT_CLOSE_DURATION, default="0s"): cv.positive_time_period_milliseconds,
         cv.Optional(CONF_EXTRA_WAIT_TIME, default="2s"): cv.positive_time_period_milliseconds,
+        cv.Optional(CONF_ENDSTOP_WAIT_TIME, default="120s"): cv.positive_time_period_milliseconds,
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
@@ -45,3 +47,4 @@ async def to_code(config):
     cg.add(var.set_tilt_open_duration(config[CONF_TILT_OPEN_DURATION]))
     cg.add(var.set_tilt_close_duration(config[CONF_TILT_CLOSE_DURATION]))
     cg.add(var.set_extra_wait_time(config[CONF_EXTRA_WAIT_TIME]))
+    cg.add(var.set_endstop_wait_time(config[CONF_ENDSTOP_WAIT_TIME]))
